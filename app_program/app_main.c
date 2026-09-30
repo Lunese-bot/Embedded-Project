@@ -1,3 +1,25 @@
+// #include "vehicle_controller.h"
+// #include "motion_control.h"
+// #include "ir_sensor.h"
+// #include "line_following.h"
+// #include "barcode.h"
+// #include "obstacle.h"
+// #include "imu.h"
+// #include "wifi_app.h"
+
+// void usermain(void)
+// {
+//     ir_sensor_init();
+//     motion_control_init();
+//     line_following_init();
+//     barcode_init();
+//     obstacle_init();
+//     imu_init();
+//     wifi_app_init();
+//     vehicle_controller_init();
+
+//     /* Create/start RTOS tasks */
+// }
 /*
  * Copyright (c) 2026 Muhamed Fauzi Bin Abbas
  *
