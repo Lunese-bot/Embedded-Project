@@ -148,25 +148,84 @@ LOCAL void sensor_test_task(INT stacd, void *exinf)
 LOCAL void imu_task(INT stacd, void *exinf)
 {
     IMU_AccelData accel;
+    ER err;
+    ER last_err = E_OK;
 
     (void)stacd;
     (void)exinf;
 
-    /* Initialise the IMU once */
-    imu_init();
+    /*
+     * Initialise the IMU.
+     *
+     * imu_init() now returns an error code so we can tell
+     * whether I2C communication actually succeeded.
+     */
+    err = imu_init();
+
+    if (err < E_OK)
+    {
+        tm_printf(
+            (UB *)"[IMU] init failed: %d (check GP0=SDA GP1=SCL)\n",
+            err
+        );
+
+        last_err = err;
+    }
 
     while (1)
     {
-        /* Read accelerometer */
-        accel = imu_get_accel();
+        /*
+         * Read accelerometer using the checked API.
+         */
+        err = imu_read_accel(&accel);
 
-        /* Print raw values */
-        tm_printf((UB *)"[IMU] X=%d  Y=%d  Z=%d\n",
-                  accel.x,
-                  accel.y,
-                  accel.z);
+        if (err < E_OK)
+        {
+            /*
+             * IMPORTANT:
+             *
+             * Do not print:
+             *
+             * X=0 Y=0 Z=0
+             *
+             * when the I2C read actually failed.
+             */
+            if (err != last_err)
+            {
+                tm_printf(
+                    (UB *)"[IMU] I2C read failed: %d; retrying\n",
+                    err
+                );
+            }
 
-        /* Wait 500 ms */
+            last_err = err;
+        }
+        else
+        {
+            /*
+             * If I2C had previously failed and is now working again,
+             * tell us in Serial Monitor.
+             */
+            if (last_err < E_OK)
+            {
+                tm_printf(
+                    (UB *)"[IMU] communication recovered\n"
+                );
+            }
+
+            last_err = E_OK;
+
+            /*
+             * Only print X/Y/Z after a SUCCESSFUL I2C read.
+             */
+            tm_printf(
+                (UB *)"[IMU] X=%d  Y=%d  Z=%d\n",
+                accel.x,
+                accel.y,
+                accel.z
+            );
+        }
+
         tk_dly_tsk(500);
     }
 }

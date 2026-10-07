@@ -331,10 +331,22 @@ EXPORT ER dev_i2c_llinit( T_I2C_DCB *p_dcb)
 #endif
 
 #if DEVCNF_I2C_SETPINFUNC
-		out_w(GPIO_CTRL(8), GPIO_CTRL_FUNCSEL_I2C);
-		out_w(GPIO(8), GPIO_IE | GPIO_DRIVE_4MA | GPIO_PUE | GPIO_SHEMITT);
-		out_w(GPIO_CTRL(9), GPIO_CTRL_FUNCSEL_I2C);
-		out_w(GPIO(9), GPIO_IE | GPIO_DRIVE_4MA | GPIO_PUE | GPIO_SHEMITT);
+    /* IMU I2C0 wiring: GP0 = SDA, GP1 = SCL. */
+    /* GP8/GP9 are used by the Robo Pico M1 motor driver. */
+
+    out_w(GPIO_CTRL(0), GPIO_CTRL_FUNCSEL_I2C);
+    out_w(GPIO(0),
+          GPIO_IE |
+          GPIO_DRIVE_4MA |
+          GPIO_PUE |
+          GPIO_SHEMITT);
+
+    out_w(GPIO_CTRL(1), GPIO_CTRL_FUNCSEL_I2C);
+    out_w(GPIO(1),
+          GPIO_IE |
+          GPIO_DRIVE_4MA |
+          GPIO_PUE |
+          GPIO_SHEMITT);
 #endif
 		break;
 	case DEV_I2C_1:
