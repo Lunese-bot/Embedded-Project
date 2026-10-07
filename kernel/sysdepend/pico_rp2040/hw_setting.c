@@ -76,9 +76,21 @@ LOCAL const T_SETUP_REG pinfnc_tbl[] = {
 	/* External LED */
 	{GPIO_CTRL(BOARD_LED_PIN),	GPIO_CTRL_FUNCSEL_SIO},	/* LED pin GPIO */
 	{GPIO_OE, (1<<BOARD_LED_PIN)},				/* LED pin output enable */
-	/* P0,P1 : UART0 */
+#if TM_CONSOLE_USB_CDC
+	/* Robot baseline:
+	 * GP0/GP1 are reserved for I2C0 to the GY-511 IMU.
+	 * USB CDC is used for Serial Monitor.
+	 */
+	{GPIO_CTRL(0),	GPIO_CTRL_FUNCSEL_I2C},	/* P0 I2C0-SDA */
+	{GPIO(0), GPIO_IE | GPIO_DRIVE_4MA | GPIO_PUE | GPIO_SHEMITT},
+
+	{GPIO_CTRL(1),	GPIO_CTRL_FUNCSEL_I2C},	/* P1 I2C0-SCL */
+	{GPIO(1), GPIO_IE | GPIO_DRIVE_4MA | GPIO_PUE | GPIO_SHEMITT},
+#else
+	/* Original UART-console configuration. */
 	{GPIO_CTRL(0),	GPIO_CTRL_FUNCSEL_UART},	/* P0 UART0-TX */
 	{GPIO_CTRL(1),	GPIO_CTRL_FUNCSEL_UART},	/* P1 UART0-RX */
+#endif
 
 #if USE_SDEV_DRV	// Do not use sample device driver
 	/* P26 : ADC0 */
@@ -93,13 +105,7 @@ LOCAL const T_SETUP_REG pinfnc_tbl[] = {
 	{GPIO_CTRL(28),	GPIO_CTRL_FUNCSEL_NULL},
 	{GPIO(28), GPIO_DRIVE_4MA | GPIO_SHEMITT},	/* Disable input & pull-up & pull-down */
 
-	/* P8 : I2C0_SDA */
-	{GPIO_CTRL(8),	GPIO_CTRL_FUNCSEL_I2C},
-	{GPIO(8), GPIO_IE | GPIO_DRIVE_4MA | GPIO_PUE | GPIO_SHEMITT},	/* Pull-up */
-
-	/* P9 : I2C0_SCL */
-	{GPIO_CTRL(9),	GPIO_CTRL_FUNCSEL_I2C},
-	{GPIO(9), GPIO_IE | GPIO_DRIVE_4MA | GPIO_PUE | GPIO_SHEMITT},	/* Pull-up */
+	/* GP8/GP9 are reserved for Robo Pico motor M1A/M1B. */
 
 #endif /* USE_SDEV_DRV */
 	{0, 0}

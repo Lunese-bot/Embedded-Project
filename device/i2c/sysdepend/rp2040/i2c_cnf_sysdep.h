@@ -23,6 +23,14 @@
 #define	DEVCNF_I2C_RESET	TRUE	// Reset I2C module
 #define	DEVCNF_I2C_SETPINFUNC	TRUE	// Set I/O pin function
 
+/* GPIO assignment for this robot baseline.
+ * I2C0: GP0 = SDA, GP1 = SCL (GY-511 / LSM303DLHC).
+ * I2C1 remains on GP6/GP7 if it is ever enabled.
+ */
+#define DEVCNF_I2C0_SDA_PIN    0
+#define DEVCNF_I2C0_SCL_PIN    1
+#define DEVCNF_I2C1_SDA_PIN    6
+#define DEVCNF_I2C1_SCL_PIN    7
 /* Register initial value */
 
 // Interrupt priority

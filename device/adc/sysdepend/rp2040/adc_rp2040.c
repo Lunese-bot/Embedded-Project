@@ -15,6 +15,7 @@
 #ifdef CPU_RP2040
 
 #include <tk/tkernel.h>
+#include <tk/syslib.h>
 #if TK_SUPPORT_SMP
 #include <tk/smp.h>
 #endif
@@ -79,10 +80,28 @@ LOCAL UW adc_convert( INT ch, INT size, UW *buf )
 	UINT	intsts;
 	UINT	flgptn;
 
-	if(ch<0 || ch>(ADC_CH_NUM-1)) return E_PAR;
-	if(size != 1) return E_PAR;
+if(ch<0 || ch>(ADC_CH_NUM-1)) return E_PAR;
+if(size != 1) return E_PAR;
 
-	while((in_w(ADC_CS)&ADC_CS_READY)==0);
+/*
+ * Do not allow a failed ADC peripheral to freeze
+ * the entire IR/sensor RTOS task forever.
+ *
+ * Wait for ADC ready for at most about 2 ms.
+ */
+{
+    UW ready_wait_us = 0;
+
+    while((in_w(ADC_CS) & ADC_CS_READY) == 0)
+    {
+        if(++ready_wait_us >= 2000U)
+        {
+            return E_TMOUT;
+        }
+
+        WaitUsec(1);
+    }
+}
 
 	ADC_LOCK(intsts);
 	(void)tk_clr_flg(ll_devcb.done_flgid, 0);
