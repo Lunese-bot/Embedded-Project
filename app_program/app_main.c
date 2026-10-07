@@ -47,6 +47,10 @@
 
 #include "usb_console_compat.h"
 #include "demo_tasks.h"
+#include "imu.h"
+#include "line_following.h"
+#include "obstacle.h"
+#include "motion_control.h"
 
 #if TM_WIFI_CYW43
 /* Plain C types on purpose - see the note in cyw43_utk.h. */
@@ -100,6 +104,175 @@ LOCAL INT	last_made_on, last_seen_on;
 LOCAL UW	mpf_buf[(N_RECORDS * sizeof(RECORD) + sizeof(UW) - 1) / sizeof(UW)
 			+ N_RECORDS];
 LOCAL UW	mbf_buf[(CREDITS * sizeof(RECORD)) / sizeof(UW) + CREDITS * 4];
+
+LOCAL void sensor_test_task(INT stacd, void *exinf)
+{
+    LineSensorData line;
+    float distance;
+    ER err;
+
+    (void)stacd;
+    (void)exinf;
+
+    err = line_sensor_init();
+    if (err < E_OK)
+    {
+        tm_printf((UB *)"[sensor] line_sensor_init failed: %d\n", err);
+        tk_slp_tsk(TMO_FEVR);
+    }
+
+    err = obstacle_init();
+    if (err < E_OK)
+    {
+        tm_printf((UB *)"[sensor] obstacle_init failed: %d\n", err);
+        tk_slp_tsk(TMO_FEVR);
+    }
+
+    tm_printf((UB *)"\n=== SENSOR TEST STARTED ===\n");
+
+    while (1)
+    {
+        line = line_sensor_read();
+        distance = ultrasonic_read_cm();
+
+        tm_printf((UB *)"IR: L=%d C=%u R=%u | Distance=%d cm\n",
+                  line.left,
+                  (UINT)line.center,
+                  (UINT)line.right,
+                  (INT)distance);
+
+        tk_dly_tsk(500);
+    }
+}
+
+LOCAL void imu_task(INT stacd, void *exinf)
+{
+    IMU_AccelData accel;
+
+    (void)stacd;
+    (void)exinf;
+
+    /* Initialise the IMU once */
+    imu_init();
+
+    while (1)
+    {
+        /* Read accelerometer */
+        accel = imu_get_accel();
+
+        /* Print raw values */
+        tm_printf((UB *)"[IMU] X=%d  Y=%d  Z=%d\n",
+                  accel.x,
+                  accel.y,
+                  accel.z);
+
+        /* Wait 500 ms */
+        tk_dly_tsk(500);
+    }
+}
+
+LOCAL T_CTSK ctsk_imu = {
+    .itskpri = 8,
+    .stksz   = STACK_SZ,
+    .task    = imu_task,
+    .tskatr  = TA_HLNG | TA_RNG3,
+};
+
+LOCAL void motor_test_task(INT stacd, void *exinf)
+{
+    (void)stacd;
+    (void)exinf;
+
+    tm_printf((UB *)"\n=== MOTOR TEST STARTED ===\n");
+
+    /* Initialise motors */
+    motion_init();
+
+    tm_printf((UB *)"Starting motor test in 3 seconds...\n");
+
+    tk_dly_tsk(3000);
+
+
+    /* =========================================
+     * TEST 1 - LEFT MOTOR FORWARD
+     * =========================================
+     */
+
+    tm_printf((UB *)"TEST 1: LEFT motor forward\n");
+
+    motor_left_forward();
+
+    tk_dly_tsk(1000);
+
+    motor_stop();
+
+    tm_printf((UB *)"STOP\n");
+
+    tk_dly_tsk(2000);
+
+
+    /* =========================================
+     * TEST 2 - RIGHT MOTOR FORWARD
+     * =========================================
+     */
+
+    tm_printf((UB *)"TEST 2: RIGHT motor forward\n");
+
+    motor_right_forward();
+
+    tk_dly_tsk(1000);
+
+    motor_stop();
+
+    tm_printf((UB *)"STOP\n");
+
+    tk_dly_tsk(2000);
+
+
+    /* =========================================
+     * TEST 3 - LEFT MOTOR REVERSE
+     * =========================================
+     */
+
+    tm_printf((UB *)"TEST 3: LEFT motor reverse\n");
+
+    motor_left_reverse();
+
+    tk_dly_tsk(1000);
+
+    motor_stop();
+
+    tm_printf((UB *)"STOP\n");
+
+    tk_dly_tsk(2000);
+
+
+    /* =========================================
+     * TEST 4 - RIGHT MOTOR REVERSE
+     * =========================================
+     */
+
+    tm_printf((UB *)"TEST 4: RIGHT motor reverse\n");
+
+    motor_right_reverse();
+
+    tk_dly_tsk(1000);
+
+    motor_stop();
+
+    tm_printf((UB *)"STOP\n");
+
+
+    /* Test completed */
+    tm_printf((UB *)"=== MOTOR TEST FINISHED ===\n");
+
+
+    /* Keep task alive, but motors remain stopped */
+    while (1)
+    {
+        tk_dly_tsk(1000);
+    }
+}
 
 /* ------------------------------------------------------------------ *
  *  Producer -- pinned to processor 1 under SMP
@@ -457,6 +630,21 @@ LOCAL T_CTSK ctsk_blink = {
 	.tskatr		= TA_HLNG | TA_RNG3,
 };
 
+LOCAL T_CTSK ctsk_sensor_test = {
+    .itskpri = 9,
+    .stksz   = STACK_SZ,
+    .task    = sensor_test_task,
+    .tskatr  = TA_HLNG | TA_RNG3,
+};
+
+LOCAL T_CTSK ctsk_motor_test = {
+    .itskpri = 8,
+    .stksz   = STACK_SZ,
+    .task    = motor_test_task,
+    .tskatr  = TA_HLNG | TA_RNG3,
+};
+
+
 LOCAL T_CMPF cmpf = {
 	.mpfatr		= TA_TFIFO | TA_RNG3,
 	.mpfcnt		= N_RECORDS,
@@ -512,6 +700,30 @@ EXPORT INT usermain(void)
 	flgid = tk_cre_flg(&cflg); if(!made("flg", flgid)) return 1;
 
 	tid = tk_cre_tsk(&ctsk_blink);    if(made("tsk(blink)",    tid)) tk_sta_tsk(tid, 0);
+	tid = tk_cre_tsk(&ctsk_imu);
+	if(made("tsk(imu)", tid))
+	{
+    tk_sta_tsk(tid, 0);
+	}
+	tid = tk_cre_tsk(&ctsk_sensor_test);
+
+if (made("tsk(sensor)", tid))
+{
+    tk_sta_tsk(tid, 0);
+}
+
+tid = tk_cre_tsk(&ctsk_motor_test);
+
+    if (made("tsk(motor)", tid))
+    {
+        tk_sta_tsk(tid, 0);
+    }
+
+
+    /* usermain sleeps forever */
+    tk_slp_tsk(TMO_FEVR);
+
+    return 0;
 	tid = tk_cre_tsk(&ctsk_monitor);  if(made("tsk(monitor)",  tid)) tk_sta_tsk(tid, 0);
 	tid = tk_cre_tsk(&ctsk_consumer); if(made("tsk(consumer)", tid)) tk_sta_tsk(tid, 0);
 	tid = tk_cre_tsk(&ctsk_producer); if(made("tsk(producer)", tid)) tk_sta_tsk(tid, 0);

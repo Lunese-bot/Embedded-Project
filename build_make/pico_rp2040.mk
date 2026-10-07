@@ -304,9 +304,9 @@ TINYUSB_OBJS := $(addprefix ./mtkernel_3/tinyusb/,$(TINYUSB_SRCS:.c=.o))
 
 USB_INCLUDES := -I"$(USBDIR)" \
                 -I"$(TINYUSB_PATH)/src" \
-                -I"$(PICO_SDK_PATH)/src/common/pico_base_headers/include" \
+                -I"$(PICO_SDK_PATH)/src/common/pico_base/include" \
                 -I"$(PICO_SDK_PATH)/src/common/pico_binary_info/include" \
-                -I"$(PICO_SDK_PATH)/src/rp2040/pico_platform/include" \
+                -I"$(PICO_SDK_PATH)/src/rp2_common/pico_platform/include" \
                 -I"$(PICO_SDK_PATH)/src/rp2_common/pico_platform_compiler/include" \
                 -I"$(PICO_SDK_PATH)/src/rp2_common/pico_platform_sections/include" \
                 -I"$(PICO_SDK_PATH)/src/rp2_common/pico_platform_panic/include" \
