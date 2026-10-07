@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 #include <tk/tkernel.h>
 #include <sys/sysdef.h>
 #include <bsp/libbsp.h>
@@ -654,4 +652,3 @@ void encoder_reset(void)
     left_encoder_count = 0;
     right_encoder_count = 0;
 }
->>>>>>> Stashed changes

@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 #ifndef MOTION_CONTROL_H
 #define MOTION_CONTROL_H
 
@@ -45,4 +43,3 @@ EncoderData encoder_get_counts(void);
 void encoder_reset(void);
 
 #endif /* MOTION_CONTROL_H */
->>>>>>> Stashed changes

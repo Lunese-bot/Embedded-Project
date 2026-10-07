@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 #ifndef OBSTACLE_H
 #define OBSTACLE_H
 
@@ -15,4 +13,3 @@ float ultrasonic_read_cm(void);
 ER servo_set_angle(int angle);
 
 #endif /* OBSTACLE_H */
->>>>>>> Stashed changes

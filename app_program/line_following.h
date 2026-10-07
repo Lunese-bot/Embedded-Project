@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 #ifndef LINE_FOLLOWING_H
 #define LINE_FOLLOWING_H
 
@@ -26,4 +24,3 @@ uint16_t line_sensor_read_right(void);
 LineSensorData line_sensor_read(void);
 
 #endif /* LINE_FOLLOWING_H */
->>>>>>> Stashed changes

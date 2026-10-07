@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 #ifndef IMU_H
 #define IMU_H
 
@@ -27,4 +25,3 @@ UW imu_get_error_count(void);
 UW imu_get_address(void);
 
 #endif /* IMU_H */
->>>>>>> Stashed changes

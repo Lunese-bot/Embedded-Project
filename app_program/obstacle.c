@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 #include <tk/tkernel.h>
 #include <tk/syslib.h>
 #include <sys/sysdef.h>
@@ -361,4 +359,3 @@ float ultrasonic_read_cm(void)
      */
     return ((float)pulse_width) / 58.0f;
 }
->>>>>>> Stashed changes
